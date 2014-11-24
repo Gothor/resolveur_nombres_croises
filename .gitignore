@@ -1,5 +1,8 @@
 # Ignore objects files
 *.o
 
+# Ignore output program
+*.out
+
 # Ignore temporary files created by vim
 *.swp
