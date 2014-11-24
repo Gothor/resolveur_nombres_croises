@@ -34,6 +34,7 @@ enum {
 };
 
 Grille creerGrille(const char* nomDuFichier);
+int grille_case_set(Grille* grille, int ligne, int colonne, int valeur);
 
 #endif // GRILLE_H_INCLUDED
 
