@@ -33,8 +33,15 @@ enum {
     // 00000000 00000000 00000011 11111111
 };
 
+enum {
+    FALSE = 0,
+    TRUE = 1
+};
+
 Grille creerGrille(const char* nomDuFichier);
 int grille_case_set(Grille* grille, int ligne, int colonne, int valeur);
+int grille_case_get(const Grille* grille, int ligne, int colonne, int rawData);
+void grille_afficher(const Grille* grille);
 
 #endif // GRILLE_H_INCLUDED
 
