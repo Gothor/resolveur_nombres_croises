@@ -21,15 +21,15 @@
  */
 typedef struct Grille Grille;
 struct Grille {
-	int lignes;
-	int colonnes;
-	int* donnees;
+    int lignes;
+    int colonnes;
+    int* donnees;
 };
 
 enum {
-	CASE_NOIRE = 1 << 10,
+    CASE_NOIRE = 1 << 10,
     // 00000000 00000000 00000100 00000000
-	CASE_VIDE = 0x3FF
+    CASE_VIDE = 0x3FF
     // 00000000 00000000 00000011 11111111
 };
 
