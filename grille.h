@@ -1,6 +1,8 @@
 #ifndef GRILLE_H_INCLUDED
 #define GRILLE_H_INCLUDED
 
+#include "liste.h"
+
 /**
  * Grille de jeu, cette structure contient la taille de la grille et
  * son contenu.
@@ -24,6 +26,8 @@ struct Grille {
     int lignes;
     int colonnes;
     int* donnees;
+    
+    Liste definitions;
 };
 
 enum {
@@ -33,15 +37,11 @@ enum {
     // 00000000 00000000 00000011 11111111
 };
 
-enum {
-    FALSE = 0,
-    TRUE = 1
-};
-
-Grille creerGrille(const char* nomDuFichier);
+Grille* grille_creer();
+Grille* grille_lire(const char* nomDuFichier);
 int grille_case_set(Grille* grille, int ligne, int colonne, int valeur);
 int grille_case_get(const Grille* grille, int ligne, int colonne, int rawData);
 void grille_afficher(const Grille* grille);
+void grille_liberer(Grille* grille);
 
 #endif // GRILLE_H_INCLUDED
-

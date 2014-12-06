@@ -1,8 +1,34 @@
-#include<stdlib.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
 #include "grille.h"
+#include "liste.h"
+#include "definition.h"
+#include "helper.h"
 
 #define TAILLE_MAX (256)
+
+/**
+ * @TODO Comment réagir en cas d'erreur dans le fichier ?
+ */
+ 
+Grille* grille_creer() {
+    Grille* grille = malloc(sizeof(*grille));
+    
+    grille->lignes = 0;
+    grille->colonnes = 0;
+    grille->donnees = NULL;
+    grille->definitions = NULL;
+    
+    return grille;
+}
+
+void grille_liberer(Grille* grille) {
+    free(grille->donnees);
+    liste_liberer(grille->definitions, (void (*)(const void *)) definition_liberer);
+    free(grille);
+}
 
 /**
  * Permet de créer une structure Grille depuis un fichier
@@ -11,48 +37,71 @@
  *
  * @return Grille
  */
-Grille creerGrille(const char* nomDuFichier) {
+Grille* grille_lire(const char* nomDuFichier) {
     FILE* fichier = NULL;
-    Grille grille;
+    Grille* grille = grille_creer();
     char chaine[TAILLE_MAX] = "";
-    int i, j;
+    int i, j, k, ligne, sens;
     
     fichier = fopen(nomDuFichier, "r");
 
-    if (fichier != NULL) {
-        // Si la lecture du fichier a réussi
-
-        // Lecture du nombre de lignes
-        if (fgets(chaine, TAILLE_MAX, fichier) != NULL)
-            grille.lignes = atoi(chaine);
-
-        // Lecture du nombre de colonnes
-        if (fgets(chaine, TAILLE_MAX, fichier) != NULL)
-            grille.colonnes = atoi(chaine);
-
-        // Récupération des données
-        grille.donnees = malloc(grille.lignes * grille.colonnes * sizeof(int));
-        chaine[1] = '\0';
-        for (i = 0; i < grille.lignes; i++) {
-            for (j = 0; j < grille.colonnes; j++) {
-                if ((chaine[0] = fgetc(fichier)) == 'X')
-                    grille_case_set(&grille, i, j, CASE_NOIRE);
-                else if (chaine[0] == '-')
-                    grille_case_set(&grille, i, j, CASE_VIDE);
-                else
-                    grille_case_set(&grille, i, j, 1 << atoi(chaine));
-            }
-            fgetc(fichier); // On passe le saut de ligne
-        }
-
-        fclose(fichier);
-    }
-    else {
+    if (fichier == NULL) {
         // Si la lecture du fichier a échoué
         fprintf(stderr, "Le fichier demandé n'existe pas.");
-
         exit(EXIT_FAILURE);
     }
+
+    // Lecture du nombre de lignes
+    if (fgets(chaine, TAILLE_MAX, fichier) != NULL)
+        grille->lignes = atoi(chaine);
+
+    // Lecture du nombre de colonnes
+    if (fgets(chaine, TAILLE_MAX, fichier) != NULL)
+        grille->colonnes = atoi(chaine);
+
+    // Récupération des données
+    grille->donnees = malloc(grille->lignes * grille->colonnes * sizeof(int));
+    chaine[1] = '\0';
+    for (i = 0; i < grille->lignes; i++) {
+        for (j = 0; j < grille->colonnes; j++) {
+            if ((chaine[0] = fgetc(fichier)) == 'X')
+                grille_case_set(grille, i, j, CASE_NOIRE);
+            else if (chaine[0] == '-')
+                grille_case_set(grille, i, j, CASE_VIDE);
+            else
+                grille_case_set(grille, i, j, 1 << atoi(chaine));
+        }
+        fgetc(fichier); // On passe le saut de ligne
+    }
+    
+    // Récupération des définitions
+    while (fgets(chaine, TAILLE_MAX, fichier) != NULL) {
+        // Lecture du numéro de ligne (ou lettre pour une colonne)
+        if(char_est_un_chiffre(chaine[0])) {
+            sens = HORIZONTAL;
+            for(j = ligne = 0; char_est_un_chiffre(chaine[j]); j++) {
+                ligne += chaine[j] - '0';
+            }
+        }
+        if(char_est_une_lettre(chaine[0])) {
+            sens = HORIZONTAL;
+            for(j = ligne = 0; char_est_une_lettre(chaine[j]); j++) {
+                ligne += char_mettre_en_majuscule(chaine[j]) - 'A';
+            }
+        }
+        j++; // On passe l'espace entre l'identifiant de la ligne et le reste
+        
+        // Lecture des définitions
+        Definition* def = NULL;
+        do {
+            for (k = j; chaine[k] != ';' && chaine[k] != '\n' && chaine[k] != '\0'; k++);
+            def = definition_lire(&chaine[j], k - j);
+            liste_ajouter(liste_creer(def), &grille->definitions);
+            j = k + 1;
+        } while(chaine[j] != '\n' && chaine[k] != '\0');
+    }
+
+    fclose(fichier);
 
     return grille;
 }
